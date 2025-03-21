@@ -1,6 +1,7 @@
-import os
-from dotenv import load_dotenv
 from litellm import completion
+from typing import List, Dict
+from dotenv import load_dotenv
+import os
 import re
 
 # Lataa API-avain .env-tiedostosta
@@ -23,7 +24,7 @@ messages = [
 
 
 def generate_response():
-    """Call the LLM and get a response based on the conversation history."""
+    """Kutsu LLM-mallia ja hanki vastaus keskusteluhistorian perusteella."""
     response = completion(model="gpt-4o", messages=messages, max_tokens=512)
 
     # Varmista, että vastaus on kelvollinen
@@ -34,7 +35,7 @@ def generate_response():
 
 
 def parse_code_and_comment(response):
-    """Parse the code and commentary from the response."""
+    """Parsii koodin ja kommentit vastauksesta."""
     # Etsi ensimmäinen Python-koodi (tunnistaa, että koodi alkaa `def`)
     code_match = re.search(r"(def .+?:[\s\S]+?)(?=\n\s*\n|\Z)", response)
 
