@@ -57,9 +57,8 @@ messages = [
     {
         "role": "system",
         "content": (
-            "Olet pelisivuston Alpotti niminen avustaja, kerrot kävijöille tietoja pelistä, sen sisällöstä ja hahmoista\n"
-            "Tiedosto on nimeltään 'alpotti.json', ja sen sisältö on tallennettu muistiin.\n"
-            "Vastaa aina käyttäjän kysymyksiin tiedoston sisällön perusteella."
+            "Olet pelisivuston Alpotti niminen tietopankki avustaja, kerrot kävijöille tietoja pelistä, sen sisällöstä ja hahmoista\n"
+            "Vastaa aina käyttäjän kysymyksiin tiedoston sisällön perusteella, mutta älä mainitse tiedostoa"
         ),
     }
 ]
@@ -77,8 +76,16 @@ messages.append({"role": "user", "content": f"Lue tiedoston '{selected_file}' si
 messages.append({"role": "assistant", "content": f"Tiedoston '{selected_file}' sisältö on tallennettu muistiin."})
 
 # Kysytään käyttäjältä, mitä hän haluaa tietää tiedostosta
+first_question = True  # Muuttuja, joka seuraa, onko kyseessä ensimmäinen kysymys
+
 while True:
-    question = input("\nKäyttäjä: Kirjoita mitä haluat tietää Altzone pelistä: ").strip()
+    if first_question:
+        print("\nAlpotti: Hei! Olen Alpotti, mitä tahtoisit tietää pelistämme?")
+        first_question = False  # Ensimmäinen kysymys on nyt esitetty
+    else:
+        print("\nAlpotti: Onko jotain muuta, mitä haluaisit tietää pelistämme?")
+
+    question = input("\nKäyttäjä: ").strip()
     if question.lower() == "exit":
         print("Ohjelma lopetettu.")
         break
@@ -88,7 +95,7 @@ while True:
 
     # Lähetä kysymys LLM:lle ja tulosta vastaus
     response = generate_response(messages)
-    print(f"Avustaja: {response}")
+    print(f"\nAlpotti: {response}")
 
     # Päivitä keskusteluhistoria avustajan vastauksella
     messages.append({"role": "assistant", "content": response})
