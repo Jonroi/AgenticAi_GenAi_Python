@@ -1,102 +1,140 @@
 import os
-import time
 from dotenv import load_dotenv
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
 from litellm import completion
+from typing import List, Dict
 
-# Lataa API-avain .env-tiedostosta
+# Lataa ympäristömuuttujat .env-tiedostosta
 load_dotenv()
+
+# Hae API-avain ympäristömuuttujista
 api_key = os.getenv("OPENAI_API_KEY")
 
+# Tarkista, että API-avain on asetettu
 if not api_key:
     raise ValueError("API-avain puuttuu! Lisää se .env-tiedostoon.")
 
-# Aseta API-avain LiteLLM:lle
+# Aseta API-avain ympäristömuuttujaksi LiteLLM:ää varten
 os.environ["OPENAI_API_KEY"] = api_key
 
-# Aseta Seleniumin polku WebDriveriin (tämä voi vaihdella tietokoneesi mukaan)
-CHROME_DRIVER_PATH = "/path/to/chromedriver"  # Aseta oikea polku chromedriverille
 
-# Käynnistä selaimen ajuri
-chrome_options = Options()
-chrome_options.add_argument(
-    "--headless"
-)  # Käynnistää selaimen näkymättömänä (headless mode)
-service = Service(CHROME_DRIVER_PATH)
-driver = webdriver.Chrome(service=service, options=chrome_options)
+def generate_response(messages: List[Dict]) -> str:
+    """
+    Lähetä viestihistoria LLM:lle ja palauta sen vastaus.
 
-# Keskusteluhistoria
-messages = [{"role": "system", "content": "Olet avulias AI-avustaja."}]
+    Args:
+        messages (List[Dict]): Lista viesteistä, jotka sisältävät käyttäjän ja avustajan vuorovaikutuksen.
+
+    Returns:
+        str: LLM:n tuottama vastaus viestihistorian perusteella.
+    """
+    response = completion(model="openai/gpt-4o", messages=messages, max_tokens=1024)
+    return response.choices[0].message.content
 
 
-# Hae tietoa altzone.fi-sivustolta (käyttäen Seleniumia)
-def fetch_altzone_info(query):
-    """Hakee tietoa altzone.fi-sivustolta Seleniumin avulla."""
-    # Käy hakusivulla (suomi ja englanti)
-    search_url_fi = f"https://altzone.fi/fi/?s={query}"  # Suomalainen versio
-    search_url_en = f"https://altzone.fi/en/?s={query}"  # Englanninkielinen versio
+def list_files_in_directory(directory: str = ".") -> List[str]:
+    """
+    Listaa kaikki tiedostot annetussa hakemistossa.
 
-    driver.get(search_url_fi)  # Lataa suomenkielinen hakusivu
-    time.sleep(3)  # Odotetaan, että sivu latautuu
+    Args:
+        directory (str): Hakemisto, jonka tiedostot listataan. Oletuksena nykyinen hakemisto.
 
+    Returns:
+        List[str]: Lista tiedostonimistä hakemistossa.
+    """
     try:
-        # Hae ensimmäinen hakutulos
-        first_result_fi = driver.find_element(By.CSS_SELECTOR, "h2.entry-title")
-        return f"Suomeksi löytyi: {first_result_fi.text}"
-    except:
-        pass  # Jos ei löydy, kokeillaan englanninkielistä sivua
+        return os.listdir(directory)
+    except FileNotFoundError:
+        return ["Error: Directory not found."]
+    except PermissionError:
+        return ["Error: Permission denied."]
 
-    driver.get(search_url_en)  # Lataa englanninkielinen hakusivu
-    time.sleep(3)
 
+def read_file(file_name: str) -> str:
+    """
+    Lue tiedoston sisältö.
+
+    Args:
+        file_name (str): Tiedoston nimi, joka luetaan.
+
+    Returns:
+        str: Tiedoston sisältö tai virheilmoitus.
+    """
     try:
-        # Hae ensimmäinen hakutulos
-        first_result_en = driver.find_element(By.CSS_SELECTOR, "h2.entry-title")
-        return f"In English found: {first_result_en.text}"
-    except:
-        return "Ei löytynyt tietoa altzone.fi-sivustolta."
+        with open(file_name, "r", encoding="utf-8") as file:
+            return file.read()
+    except FileNotFoundError:
+        return "Error: File not found."
+    except PermissionError:
+        return "Error: Permission denied."
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 
-def generate_response():
-    """Kutsu LLM-mallia ja hanki vastaus keskusteluhistorian perusteella."""
-    response = completion(model="gpt-4o", messages=messages, max_tokens=512)
+# Alustetaan keskusteluhistoria, jossa määritellään avustajan rooli
+messages = [
+    {
+        "role": "system",
+        "content": (
+            "Olet asiantunteva ohjelmistoinsinööri, joka voi suorittaa seuraavat toiminnot:\n"
+            "- Listaa tiedostot hakemistossa (list_files_in_directory).\n"
+            "- Lue tiedoston sisältö (read_file).\n"
+            "Vastaa aina toimintamuodossa, esimerkiksi:\n"
+            "```action\n{\"tool_name\": \"list_files_in_directory\", \"args\": {\"directory\": \".\"}}\n```"
+        ),
+    }
+]
 
-    # Varmista, että vastaus on kelvollinen
-    if "choices" not in response or not response["choices"]:
-        return "Virhe: Mallilta ei saatu vastausta."
-
-    return response["choices"][0]["message"]["content"]
-
-
-# Tulosta aloitusviesti
-print("Hei! Kuinka voin auttaa sinua?")
-
+# Pääohjelman silmukka
 while True:
-    user_input = input("\nKäyttäjä: ")
+    # Listaa tiedostot ja pyydä käyttäjää valitsemaan tiedosto
+    print("\nHakemiston tiedostot:")
+    files = list_files_in_directory()
+    for idx, file_name in enumerate(files, start=1):
+        print(f"{idx}. {file_name}")
 
-    if user_input.lower() in ["exit", "quit"]:
-        print("Näkemiin!")
+    user_input = input("\nKäyttäjä: Valitse tiedoston numero tai kirjoita 'exit' lopettaaksesi: ").strip()
+    if user_input.lower() == "exit":
+        print("Ohjelma lopetettu.")
         break
 
-    # Hae tietoa altzone.fi-sivustolta
-    altzone_info = fetch_altzone_info(user_input)
+    # Tarkista, onko syöte validi numero
+    if user_input.isdigit():
+        file_index = int(user_input) - 1
+        if 0 <= file_index < len(files):
+            selected_file = files[file_index]
+            print(f"Valitsit tiedoston: {selected_file}")
+        else:
+            print("Virhe: Valitsemasi numero ei vastaa mitään tiedostoa.")
+            continue
+    else:
+        print("Virhe: Anna tiedoston numero tai kirjoita 'exit'.")
+        continue
 
-    # Lisää käyttäjän viesti ja haettu tieto keskusteluhistoriaan
-    messages.append({"role": "user", "content": user_input})
-    messages.append(
-        {"role": "system", "content": f"Altzone.fi:n hakutulos: {altzone_info}"}
-    )
+    # Lue valitun tiedoston sisältö
+    file_content = read_file(selected_file)
+    if "Error" in file_content:
+        print(f"Tiedoston '{selected_file}' lukeminen epäonnistui: {file_content}")
+        continue
 
-    # Hanki vastaus mallilta
-    assistant_response = generate_response()
+    # Päivitä keskusteluhistoria tiedoston sisällöllä
+    messages.append({"role": "user", "content": f"Lue tiedoston '{selected_file}' sisältö."})
+    messages.append({"role": "assistant", "content": f"Tiedoston '{selected_file}' sisältö on tallennettu muistiin."})
 
-    # Lisää avustajan vastaus keskusteluhistoriaan
-    messages.append({"role": "assistant", "content": assistant_response})
+    print(f"Tiedoston '{selected_file}' sisältö on tallennettu muistiin.")
 
-    print("\nAvustaja:", assistant_response)
+    # Kysytään käyttäjältä, mitä hän haluaa tietää tiedostosta
+    while True:
+        question = input("\nKäyttäjä: Mitä haluat tietää tästä tiedostosta? (Kirjoita 'back' palataksesi tiedoston valintaan): ").strip()
+        if question.lower() == "back":
+            print("Palataan tiedoston valintaan.")
+            break
 
-# Sulje selain ajuri lopuksi
-driver.quit()
+        # Lisää käyttäjän kysymys keskusteluhistoriaan
+        messages.append({"role": "user", "content": f"Tiedoston '{selected_file}' sisältö: {file_content}\nKysymys: {question}"})
+
+        # Lähetä kysymys LLM:lle ja tulosta vastaus
+        response = generate_response(messages)
+        print(f"Avustaja: {response}")
+
+        # Päivitä keskusteluhistoria avustajan vastauksella
+        messages.append({"role": "assistant", "content": response})
