@@ -1,50 +1,59 @@
 import os
+import json
 from dotenv import load_dotenv
 from litellm import completion
 from typing import List, Dict
 
 # Lataa ympäristömuuttujat .env-tiedostosta
 load_dotenv()
-
-# Hae API-avain ympäristömuuttujista
 api_key = os.getenv("OPENAI_API_KEY")
 
-# Tarkista, että API-avain on asetettu
 if not api_key:
     raise ValueError("API-avain puuttuu! Lisää se .env-tiedostoon.")
 
-# Aseta API-avain ympäristömuuttujaksi LiteLLM:ää varten
 os.environ["OPENAI_API_KEY"] = api_key
 
 
-import json
-import os
-from typing import List
+def list_files(directory: str = ".") -> List[str]:
+    """Listaa kaikki tiedostot ja kansiot hakemistossa."""
+    file_list = []
+    for root, dirs, files in os.walk(directory):
+        for name in files:
+            file_list.append(os.path.join(root, name))
+    return file_list
 
-from litellm import completion
-
-def list_files() -> List[str]:
-    """List files in the current directory."""
-    return os.listdir(".")
 
 def read_file(file_name: str) -> str:
-    """Read a file's contents."""
+    """Lue tiedoston sisältö."""
     try:
-        with open(file_name, "r") as file:
+        with open(file_name, "r", encoding="utf-8") as file:
             return file.read()
     except FileNotFoundError:
-        return f"Error: {file_name} not found."
+        return f"Virhe: {file_name} ei löydy."
     except Exception as e:
-        return f"Error: {str(e)}"
+        return f"Virhe: {str(e)}"
+
+
+def read_folder(folder_path: str) -> Dict[str, str]:
+    """Lue kaikki tiedostot annetusta hakemistosta ja palauta niiden sisällöt."""
+    contents = {}
+    for root, _, files in os.walk(folder_path):
+        for file_name in files:
+            file_path = os.path.join(root, file_name)
+            contents[file_path] = read_file(file_path)
+    return contents
+
 
 def terminate(message: str) -> None:
-    """Terminate the agent loop and provide a summary message."""
-    print(f"Termination message: {message}")
+    """Lopeta agentin toiminta ja tulosta viesti."""
+    print(f"Lopetusviesti: {message}")
+
 
 tool_functions = {
     "list_files": list_files,
     "read_file": read_file,
-    "terminate": terminate
+    "read_folder": read_folder,
+    "terminate": terminate,
 }
 
 tools = [
@@ -52,15 +61,21 @@ tools = [
         "type": "function",
         "function": {
             "name": "list_files",
-            "description": "Returns a list of files in the directory.",
-            "parameters": {"type": "object", "properties": {}, "required": []}
+            "description": "Palauttaa listan hakemiston tiedostoista ja kansioista.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "directory": {"type": "string"}
+                },
+                "required": ["directory"]
+            }
         }
     },
     {
         "type": "function",
         "function": {
             "name": "read_file",
-            "description": "Reads the content of a specified file in the directory.",
+            "description": "Lukee annetun tiedoston sisällön.",
             "parameters": {
                 "type": "object",
                 "properties": {"file_name": {"type": "string"}},
@@ -71,12 +86,26 @@ tools = [
     {
         "type": "function",
         "function": {
-            "name": "terminate",
-            "description": "Terminates the conversation. No further actions or interactions are possible after this. Prints the provided message for the user.",
+            "name": "read_folder",
+            "description": "Lukee kaikki tiedostot annetussa kansiossa ja palauttaa niiden sisällöt.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "message": {"type": "string"},
+                    "folder_path": {"type": "string"}
+                },
+                "required": ["folder_path"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "terminate",
+            "description": "Lopettaa keskustelun ja tulostaa annetun viestin.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "message": {"type": "string"}
                 },
                 "required": ["message"]
             }
@@ -87,25 +116,24 @@ tools = [
 agent_rules = [{
     "role": "system",
     "content": """
-You are an AI agent that can perform tasks by using available tools.
+Olet AI-agentti, joka voi suorittaa tehtäviä käyttäen käytettävissä olevia työkaluja.
+Voit listata tiedostoja, lukea yksittäisiä tiedostoja ja lukea koko kansioiden sisällön.
+Jos käyttäjä pyytää tiedostoihin liittyvää tietoa, listaa ensin hakemiston sisältö ennen tiedostojen lukemista.
 
-If a user asks about files, documents, or content, first list the files before reading them.
-
-When you are done, terminate the conversation by using the "terminate" tool and I will provide the results to the user.
+Kun tehtävä on suoritettu, lopeta keskustelu käyttämällä 'terminate' -työkalua.
 """
 }]
 
-# Initialize agent parameters
+# Alustetaan agentti
 iterations = 0
 max_iterations = 10
 
-user_task = input("What would you like me to do? ")
+user_task = input("Mitä haluat minun tekevän? ")
 
 memory = [{"role": "user", "content": user_task}]
 
-# The Agent Loop
+# Agentin pääsilmukka
 while iterations < max_iterations:
-
     messages = agent_rules + memory
 
     response = completion(
@@ -126,23 +154,23 @@ while iterations < max_iterations:
         }
 
         if tool_name == "terminate":
-            print(f"Termination message: {tool_args['message']}")
+            print(f"Lopetusviesti: {tool_args['message']}")
             break
         elif tool_name in tool_functions:
             try:
                 result = {"result": tool_functions[tool_name](**tool_args)}
             except Exception as e:
-                result = {"error":f"Error executing {tool_name}: {str(e)}"}
+                result = {"error": f"Virhe suorituksessa {tool_name}: {str(e)}"}
         else:
-            result = {"error": f"Unknown tool: {tool_name}"}
+            result = {"error": f"Tuntematon työkalu: {tool_name}"}
 
-        print(f"Executing: {tool_name} with args {tool_args}")
-        print(f"Result: {result}")
+        print(f"Suoritetaan: {tool_name} parametreilla {tool_args}")
+        print(f"Tulos: {result}")
         memory.extend([
             {"role": "assistant", "content": json.dumps(action)},
             {"role": "user", "content": json.dumps(result)}
         ])
     else:
         result = response.choices[0].message.content
-        print(f"Response: {result}")
+        print(f"Vastaus: {result}")
         break
