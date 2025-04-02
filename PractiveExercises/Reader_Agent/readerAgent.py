@@ -88,7 +88,6 @@ def terminate(message: str) -> None:
 tool_functions = {
     "list_files": list_files,
     "read_file": read_file,
-    "read_folder": read_folder,
     "terminate": terminate,
 }
 
@@ -117,20 +116,6 @@ tools = [
                 "type": "object",
                 "properties": {"file_name": {"type": "string"}},
                 "required": ["file_name"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "read_folder",
-            "description": "Lukee kaikki tiedostot annetussa kansiossa ja palauttaa niiden sisällöt.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "folder_path": {"type": "string"}
-                },
-                "required": ["folder_path"]
             }
         }
     },
