@@ -1,0 +1,11 @@
+[
+  {
+    "raw_invoice_text": "Invoice #12345\nDate: 2023-01-01\nVendor: Vendor Name\nAddress: 123 Vendor St.\nTotal Amount: $100.00\n\nLine Items:\n1. Description: Item 1, Quantity: 1, Unit Price: $100.00, Total: $100.00"
+  },
+  {
+    "raw_invoice_text": "Invoice #12346\nDate: 2023-01-02\nVendor: Vendor ABC\nAddress: 456 Vendor Ave.\nTotal Amount: $200.00\n\nLine Items:\n1. Description: Item A, Quantity: 2, Unit Price: $100.00, Total: $200.00"
+  },
+  {
+    "raw_invoice_text": "Invoice #12347\nDate: 2023-01-03\nVendor: Vendor XYZ\nAddress: 789 Vendor Blvd.\nTotal Amount: $150.00\n\nLine Items:\n1. Description: Item B, Quantity: 3, Unit Price: $50.00, Total: $150.00"
+  }
+]
