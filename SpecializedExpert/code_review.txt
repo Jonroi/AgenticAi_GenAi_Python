@@ -1,0 +1,40 @@
+Tämä funktio on jo selkeä Python-funktio eikä siinä ole syntaksivirheitä, mutta se ei tee mitään, vaan jättää ohjelman kokonaan suorittamatta, koska sen keho sisältää vain "pass" -asian, jota käytetään tauon merkitsemiseen ohjelman työnkulussa.
+
+Toisaalta, jos tarkoituksesi oli luoda skelettifunktio jota tullaan laajentamaan myöhemmin, se toimii tässä tapauksessa hyvin. Mutta jos haluat funktiosta paremmin suunnitellun, ymmärrettävän ja johdonmukaisen, tässä on joitakin parannusehdotuksia:
+
+1. Nimeä funktio uudelleen: Hyvä nimeämisstandardi on tärkeä koodin luettavuuden kannalta. "example_function" ei kerro paljoa siitä, mitä funktio tekee. Yritä nimetä funktio toiminnon mukaan.
+
+```python
+def calculate_sum(): pass
+```
+
+2. Lisää docstring: Selitä lyhyesti, mitä funktio tekee, sen parametrit ja palautettavat arvot. Tämä on erityisen tärkeää, kun muut ihmiset lukevat koodiasi.
+
+```python
+def calculate_sum():
+    """"Calculate the sum of two numbers
+
+    Parameters:
+    
+    Returns:
+    
+    """
+    pass
+```
+
+3. Parametrit & Keho: Lisää tarvittavat parametrit funktioon ja kirjoita sen keho. Koska tämä funktio ei tee mitään, yritämme laskea kahden numeron summan esimerkiksi:
+
+```python
+def calculate_sum(num1, num2):
+    """"Calculate the sum of two numbers
+
+    Parameters:
+    num1 (int, float): The first number to add
+    num2 (int, float): The second number to add
+
+    Returns:
+    int, float: The sum of num1 and num2
+    """
+    return num1 + num2
+```
+Nämä ovat vain yleisiä parannuksia. Riippuen siitä, mitä tarkalleen ottaen tarvitset, funktio voidaan suunnitella ja toteuttaa monin eri tavoin.
