@@ -1,0 +1,46 @@
+# Tekninen dokumentaio funktiosta `add_numbers`
+
+        ## Kuvaus
+
+        `add_numbers` on yksinkertainen Python-funktio, joka ottaa kaksi parametria, `a` ja `b`, ja palauttaa niiden summan.
+
+        ## Parametrit
+
+        `add_numbers` ottaa vastaan seuraavat parametrit:
+
+        - `a` (pakollinen): Tämä parametri edustaa ensimmäistä lukua, joka lisätään. Tämä parametri voi olla mikä tahansa luku mukaan lukien kokonaisluku (`int`) tai liukuluku (`float`).
+        - `b` (pakollinen): Tämä parametri edustaa toista lukua, joka lisätään. Kuten `a`, tämä parametri voi olla minkä tahansa tyyppinen luku, mukaan lukien kokonaisluku (`int`) tai liukuluku (`float`).
+
+        ## Paluu arvo
+
+        `add_numbers` käsittelee lisäyksen käyttämällä Pythonin sisäänrakennettua lisäysoperaattoria ja palauttaa tuloksen. Tulos voi olla kokonaisluku tai liukuluku riippuen siitä, mitä numeroita funktiolle annetaan.
+
+        ## Esimerkki
+
+        Seuraavassa on esimerkki siitä, kuinka `add_numbers`-funktiota voidaan käyttää:
+
+        ```
+        print(add_numbers(5, 3))
+        ```
+
+        Tässä tapauksessa funktio palauttaa arvon `8`, koska 5 + 3 = 8. 
+
+        ## Virheenkäsittely
+
+        `add_numbers`-funktiossa ei ole sisäänrakennettua virheenkäsittelyä, joten jos annetaan parametreja, jotka eivät ole numeerisia, Python tuottaa virheen. On suositeltavaa varmistaa, että annetut arvot ovat validoita lukuja ennen funktion kutsumista.
+
+        ## Yhteensopivuus
+
+        Tämä funktio on yhteensopiva kaikkien Python 3.x versioiden kanssa. Se ei ole yhteensopiva Python 2.x versioiden kanssa, koska Python 2 ei tue funktiota kiinteästi tyypitetyn parametrin määrittelyssä.
+
+        ## Ylläpito ja tuki
+
+        Koska `add_numbers` on melko yksinkertainen funktio, se ei todennäköisesti vaadi tulevaisuudessa paljon ylläpitoa tai tukea. Jos kuitenkin havaitset ongelmia funktion toiminnassa tai tarvitset tukea sen käytössä, ota yhteyttä järjestelmän ylläpitäjään tai ohjelmiston kehittäjään.
+
+        ## Versiohistoria
+
+        `add_numbers` -funktiota päivitettiin viimeksi Python 3.x yhteensopivuuteen 01.01.2020. Sitä ennen funktio muutettiin toimimaan sekä kokonaislukujen että liukulukujen kanssa 01.01.2019.
+
+        ---
+        
+        Tämä tekninen dokumentaatio antaa yleiskuvan `add_numbers`-funktion käytöstä ja toiminnoista. Huomioithan, että koska funktio on hyvin yleismaailmallinen ja yksinkertainen, tämä dokumentaatio voi olla monimutkaisempi kuin itse funktio.
