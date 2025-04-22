@@ -3,54 +3,54 @@ def call_agent(action_context: ActionContext,
                agent_name: str, 
                task: str) -> dict:
     """
-    Invoke another agent to perform a specific task.
+    Kutsu toista agenttia suorittamaan tietty tehtävä.
     
-    Args:
-        action_context: Contains registry of available agents
-        agent_name: Name of the agent to call
-        task: The task to ask the agent to perform
+    Parametrit:
+        action_context: Sisältää rekisterin käytettävissä olevista agenteista
+        agent_name: Kutsuttavan agentin nimi
+        task: Tehtävä, joka pyydetään agenttia suorittamaan
         
-    Returns:
-        The result from the invoked agent's final memory
+    Palauttaa:
+        Tuloksen kutsutun agentin lopullisesta muistista
     """
-    # Get the agent registry from our context
+    # Hanki agenttirekisteri kontekstista
     agent_registry = action_context.get_agent_registry()
     if not agent_registry:
-        raise ValueError("No agent registry found in context")
+        raise ValueError("Kontekstista ei löydy agenttirekisteriä")
     
-    # Get the agent's run function from the registry
+    # Hanki agentin suoritusfunktio rekisteristä
     agent_run = agent_registry.get_agent(agent_name)
     if not agent_run:
-        raise ValueError(f"Agent '{agent_name}' not found in registry")
+        raise ValueError(f"Agenttia '{agent_name}' ei löytynyt rekisteristä")
     
-    # Create a new memory instance for the invoked agent
+    # Luo uusi muistinstance kutsutulle agentille
     invoked_memory = Memory()
     
     try:
-        # Run the agent with the provided task
+        # Suorita agentti annetulla tehtävällä
         result_memory = agent_run(
             user_input=task,
             memory=invoked_memory,
-            # Pass through any needed context properties
+            # Välitä tarvittavat kontekstin ominaisuudet
             action_context_props={
                 'auth_token': action_context.get('auth_token'),
                 'user_config': action_context.get('user_config'),
-                # Don't pass agent_registry to prevent infinite recursion
+                # Älä välitä agent_registryä rekursion estämiseksi
             }
         )
         
-        # Get the last memory item as the result
+        # Hanki viimeisin muistielementti tulokseksi
         if result_memory.items:
             last_memory = result_memory.items[-1]
             return {
                 "success": True,
                 "agent": agent_name,
-                "result": last_memory.get("content", "No result content")
+                "result": last_memory.get("content", "Ei tulossisältöä")
             }
         else:
             return {
                 "success": False,
-                "error": "Agent failed to run."
+                "error": "Agentin suoritus epäonnistui."
             }
             
     except Exception as e:
