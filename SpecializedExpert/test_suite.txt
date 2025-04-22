@@ -1,0 +1,1 @@
+Ominaisuuden kuvaus on välttämätön testisuunnitelman luomista varten. Voisitko kertoa lisää kyseisestä ominaisuudesta, jota haluat testata? Tarvitsen tiedot kuten ominaisuuden toiminnallisuus, tavoitellut loppukäyttäjät, ja mitä liiketoiminnallista loppukäyttäjät odottavat kyseiseltä ominaisuudelta.
