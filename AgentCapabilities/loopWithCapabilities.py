@@ -22,8 +22,8 @@ os.environ["OPENAI_API_KEY"] = api_key
 
 class ActionContext:
     """
-    Mocked ActionContext for demonstration purposes.
-    Replace with the actual implementation in your system.
+    Toimintakonteksti-luokka (mockattu).
+    Tämän voi korvata järjestelmän todellisella implementaatiolla.
     """
     def get(self, key: str, default=None):
         return default
@@ -34,23 +34,27 @@ class ActionContext:
 
 class Memory:
     """
-    Mocked Memory class for demonstration purposes.
-    Replace with the actual implementation in your system.
+    Muisti-luokka (mockattu).
+    Tämän voi korvata järjestelmän todellisella implementaatiolla.
     """
     def add_memory(self, memory: Dict[str, Any]):
-        print(f"Memory added: {memory}")
+        # Tulostetaan, mitä muistiin lisätään
+        print(f"Muistiin lisätty: {memory}")
 
 
 class Prompt:
     """
-    Mocked Prompt class for demonstration purposes.
-    Replace with the actual implementation in your system.
+    Prompt-luokka (mockattu).
+    Tämän voi korvata järjestelmän todellisella implementaatiolla.
     """
     def __init__(self, messages: List[Dict[str, Any]]):
         self.messages = messages
 
 
 class Capability:
+    """
+    Kyvykkyys-luokka, jota käytetään agentin toiminnan laajentamiseen.
+    """
     def __init__(self, name: str, description: str):
         self.name = name
         self.description = description
@@ -94,43 +98,55 @@ class Capability:
 
 
 class TimeAwareCapability(Capability):
+    """
+    Kyvykkyys, joka tekee agentista ajan suhteen tietoiseksi.
+    """
     def __init__(self):
         super().__init__(
-            name="Time Awareness",
-            description="Allows the agent to be aware of time"
+            name="Aikatietoisuus",
+            description="Mahdollistaa ajan huomioimisen agentissa"
         )
         
     def init(self, agent, action_context: ActionContext) -> dict:
-        """Set up time awareness at the start of agent execution."""
+        """
+        Asetetaan ajan suhteen tietoisuus agentin suorituksen alussa.
+        """
         time_zone_name = action_context.get("time_zone", "America/Chicago")
         timezone = ZoneInfo(time_zone_name)
         
+        # Haetaan nykyinen aika ja muotoillaan se
         current_time = datetime.now(timezone)
         iso_time = current_time.strftime("%Y-%m-%dT%H:%M:%S%z")
         human_time = current_time.strftime("%H:%M %A, %B %d, %Y")
         
+        # Lisätään aika muistiin
         memory = action_context.get_memory()
         memory.add_memory({
             "type": "system",
-            "content": f"""Right now, it is {human_time} (ISO: {iso_time}).
-            You are in the {time_zone_name} timezone.
-            Please consider the day/time, if relevant, when responding."""
+            "content": f"""Nyt on {human_time} (ISO: {iso_time}).
+            Olet {time_zone_name} aikavyöhykkeellä.
+            Ota päivä/aika huomioon, jos se on relevanttia."""
         })
         
     def process_prompt(self, agent, action_context: ActionContext, 
                        prompt: Prompt) -> Prompt:
-        """Update time information in each prompt."""
+        """
+        Päivitetään ajan tietoisuus jokaiseen promptiin.
+        """
         time_zone_name = action_context.get("time_zone", "America/Chicago")
         current_time = datetime.now(ZoneInfo(time_zone_name))
         
-        system_msg = (f"Current time: "
+        # Luodaan järjestelmän viesti, jossa kerrotaan nykyinen aika
+        system_msg = (f"Nykyinen aika: "
                       f"{current_time.strftime('%H:%M %A, %B %d, %Y')} "
                       f"({time_zone_name})\n\n")
         
         messages = prompt.messages
         if messages and messages[0]["role"] == "system":
+            # Päivitetään olemassa oleva järjestelmän viesti
             messages[0]["content"] = system_msg + messages[0]["content"]
         else:
+            # Lisätään uusi järjestelmän viesti
             messages.insert(0, {
                 "role": "system",
                 "content": system_msg
@@ -141,8 +157,8 @@ class TimeAwareCapability(Capability):
 
 class Agent:
     """
-    Mocked Agent class for demonstration purposes.
-    Replace with the actual implementation in your system.
+    Agentti-luokka (mockattu).
+    Tämän voi korvata järjestelmän todellisella implementaatiolla.
     """
     def __init__(self, goals, agent_language, action_registry, generate_response,
                  environment, capabilities=None, max_iterations=10, 
@@ -157,20 +173,23 @@ class Agent:
         self.max_duration_seconds = max_duration_seconds
 
     def run(self, user_input: str):
+        """
+        Suorita agentin toiminto käyttäjän syötteen perusteella.
+        """
         action_context = ActionContext()
         for capability in self.capabilities:
             capability.init(self, action_context)
-        print(f"Agent running with input: {user_input}")
+        print(f"Agentti suorittaa seuraavalla syötteellä: {user_input}")
 
 
-# Example usage
+# Esimerkki käytöstä
 if __name__ == "__main__":
     agent = Agent(
-        goals=["Complete the assigned task"],
+        goals=["Suorita annettu tehtävä"],
         agent_language=None,
         action_registry=None,
         generate_response=None,
         environment=None,
         capabilities=[TimeAwareCapability()]
     )
-    agent.run("What time is it?")
+    agent.run("Mikä on nykyinen aika?")
